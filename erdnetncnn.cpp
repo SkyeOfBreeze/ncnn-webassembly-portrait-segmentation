@@ -72,6 +72,7 @@ static int draw_fps(cv::Mat& rgba)
 
 static ERDNet* g_erdnet = 0;
 static cv::Mat bg_bgr;
+static cv::Mat mask_g;
 
 static void on_image_render(cv::Mat& rgba)
 {
@@ -85,12 +86,11 @@ static void on_image_render(cv::Mat& rgba)
         cv::resize(bg_bgr, bg_bgr, cv::Size(rgba.cols, rgba.rows));
     }
 
-    cv::Mat mask_g;
     g_erdnet->detect(rgba, mask_g);
 
     g_erdnet->draw(rgba, bg_bgr, mask_g);
 
-    draw_fps(rgba);
+    //draw_fps(rgba);
 }
 
 #ifdef __EMSCRIPTEN_PTHREADS__
@@ -159,6 +159,10 @@ void erdnet_ncnn(unsigned char* _rgba_data, int _w, int _h)
     finish_lock.unlock();
 }
 
+unsigned char* erdnet_ncnn_get_mask(){
+    return mask_g.data;
+}
+
 }
 
 #else // __EMSCRIPTEN_PTHREADS__
@@ -170,6 +174,10 @@ void erdnet_ncnn(unsigned char* rgba_data, int w, int h)
     cv::Mat rgba(h, w, CV_8UC4, (void*)rgba_data);
 
     on_image_render(rgba);
+}
+
+unsigned char* erdnet_ncnn_get_mask(){
+    return mask_g.data;
 }
 
 }
